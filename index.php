@@ -69,11 +69,11 @@ if ($count == 0) {
     ");
 
     $pdo->exec("
-        INSERT INTO posts (user_id, title, content, likes, dislikes, comments, category_id)
+        INSERT INTO posts (user_id, title, content, likes, dislikes, category_id)
         VALUES
-        (1, 'Добро пожаловать!', 'Первый пост на форуме!', 10, 1, 3, 1),
-        (2, 'PHP + SQLite', 'Полностью рабочий форум!', 5, 0, 0, 3),
-        (1, 'Новости проекта', 'Скоро будет больше функций!', 2, 0, 1, 1);
+        (1, 'Добро пожаловать!', 'Первый пост на форуме!', 10, 1, 1),
+        (2, 'PHP + SQLite', 'Полностью рабочий форум!', 5, 0, 3),
+        (1, 'Новости проекта', 'Скоро будет больше функций!', 2, 0, 1);
     ");
 }
 
@@ -176,7 +176,98 @@ $cats = $pdo->query("SELECT * FROM categories")->fetchAll();
 
         .pagination { text-align: center; margin: 20px; }
         .page-btn { margin: 0 10px; text-decoration: none; }
+
     </style>
+
+    <style>
+        /* Комментарии */
+        .comments {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .comment-list .comment {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .comment-list .comment b {
+            margin-right: 5px;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .comment-input:focus {
+            border-color: #333;
+            box-shadow: 0 0 4px rgba(0,0,0,0.15);
+            outline: none;
+        }
+
+        .comment-send {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            background: #333;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .comment-send:hover {
+            background: #555;
+        }
+
+        /* Слегка увеличим отступ у поста, чтобы комментарии были читаемы */
+        .post {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Можно сделать аватар комментатора чуть меньше, если добавлять */
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Для мобильных: инпут и кнопка подстраиваются */
+        @media (max-width: 600px) {
+            .comment-form {
+                flex-direction: column;
+            }
+            .comment-input {
+                width: 100%;
+            }
+            .comment-send {
+                width: 100%;
+            }
+        }
+    </style>
+
 </head>
 <body>
 
@@ -299,8 +390,17 @@ $cats = $pdo->query("SELECT * FROM categories")->fetchAll();
 
                 <div>
                     <div><b><?= htmlspecialchars($p['username']) ?></b></div>
-                    <div><?= $p['created_at'] ?> <?= $p['edited_at'] ? "(изменено)" : "" ?></div>
+
+                <div class="post-date"
+                    data-time="<?= str_replace(' ', 'T', $p['created_at']) ?>Z">
                 </div>
+
+
+                <?php if ($p['edited_at']): ?>
+                    <div style="color:#777;">(изменено)</div>
+                <?php endif; ?>
+                </div>
+
             </div>
 
             <div>
@@ -312,21 +412,86 @@ $cats = $pdo->query("SELECT * FROM categories")->fetchAll();
             <div class="post-info">
                 <span>Категория: <?= htmlspecialchars($p['category_name']) ?></span>
 
-                <span>
-                    <img src="assets/like.svg" style="width:18px; vertical-align:middle;">
-                    <?= $p['likes'] ?>
+                <?php 
+                    $liked = false;
+                    $disliked = false;
+                    if ($currentUser) {
+                        $stmt = $pdo->prepare("SELECT id FROM likes WHERE user_id = ? AND post_id = ?");
+                        $stmt->execute([$currentUser['id'], $p['id']]);
+                        $liked = $stmt->fetch();
+                    }
+                                        
+                    if ($currentUser) {
+                        $stmt = $pdo->prepare("SELECT id FROM dislikes WHERE user_id = ? AND post_id = ?");
+                        $stmt->execute([$currentUser['id'], $p['id']]);
+                        $disliked = $stmt->fetch();
+                    }
+                ?>
+
+                <span style="cursor:pointer;" onclick="likePost(<?= $p['id'] ?>, this)">
+                    <img src="assets/like.svg"
+                    class="like-icon"
+                    style="width:18px; vertical-align:middle; opacity: <?= $liked ? '1' : '0.5' ?>;">
+
+                    <span class="like-count"><?= $p['likes'] ?></span>
                 </span>
 
-                <span>
-                    <img src="assets/dislike.svg" style="width:18px; vertical-align:middle;">
-                    <?= $p['dislikes'] ?>
+                <span style="cursor:pointer;" onclick="dislikePost(<?= $p['id'] ?>, this)">
+                    <img src="assets/dislike.svg"
+                    class="dislike-icon"
+                    style="width:18px; vertical-align:middle; opacity: <?= $disliked ? '1' : '0.5' ?>;">
+
+                    <span class="dislike-count"><?= $p['dislikes'] ?></span>
                 </span>
 
-                <span>
+                <span class="comment-count">
                     <img src="assets/comment.svg" style="width:18px; vertical-align:middle;">
-                    <?= $p['comments'] ?>
+                    <span class="count-number"><?= $p['comments'] ?></span>
                 </span>
+
+
             </div>
+
+        <div class="comments">
+            <?php
+            // Загружаем комментарии для этого поста
+            $stmt = $pdo->prepare("
+                SELECT c.*, u.username, COALESCE(u.avatar, 'default.png') AS avatar 
+                FROM comments c
+                JOIN users u ON c.user_id = u.id
+                WHERE c.post_id = ? 
+                ORDER BY c.created_at ASC
+            ");
+            $stmt->execute([$p['id']]);
+            $comments = $stmt->fetchAll();
+            ?>
+
+            <div class="comment-list">
+                <?php foreach ($comments as $c): ?>
+                    <div class="comment">
+                        <img src="avatars/<?= htmlspecialchars($c['avatar']) ?>" class="comment-avatar">
+                        <div>
+                            <b><?= htmlspecialchars($c['username']) ?></b>: <?= htmlspecialchars($c['content']) ?>
+                            <div class="comment-date" data-time="<?= str_replace(' ', 'T', $c['created_at']) ?>Z" style="color:#777; font-size:12px;">
+                                <!-- сюда JS подставит "только что / X мин." -->
+                            </div>
+                        </div>
+                    </div>
+
+
+                <?php endforeach; ?>
+            </div>
+
+            <?php if ($currentUser): ?>
+                <form method="POST" class="comment-form" onsubmit="return addComment(event, <?= $p['id'] ?>)">
+                    <input type="text" class="comment-input" name="comment" placeholder="Написать комментарий..." required style="width:80%;">
+                    <button type="submit" class="comment-send">Отправить</button>
+                </form>
+            <?php else: ?>
+                <div style="color:#999;">Чтобы комментировать, войдите в аккаунт.</div>
+            <?php endif; ?>
+        </div>      
+
 
         </div>
     <?php endforeach; ?>
@@ -344,6 +509,179 @@ $cats = $pdo->query("SELECT * FROM categories")->fetchAll();
         <a class="page-btn" href="?page=<?= $page + 1 ?>">Вперед »</a>
     <?php endif; ?>
 </div>
+
+<script>
+
+
+function timeAgo(date) {
+    const now = new Date();
+    const diff = (now - date) / 1000; // в секундах
+
+    // секунды
+    if (diff < 60) return "только что";
+
+    // минуты
+    const minutes = diff / 60;
+    if (minutes < 60) {
+        const m = Math.floor(minutes);
+        return m + " " + ("мин.");
+    }
+
+    // часы
+    const hours = minutes / 60;
+    if (hours < 24) {
+        const h = Math.floor(hours);
+        return h + " " + ("ч.");
+    }
+
+    // дни
+    const days = hours / 24;
+    if (days < 2) return "вчера";
+
+    if (days < 7) {
+        const d = Math.floor(days);
+        return d + " " + ("дн.");
+    }
+
+    // если давно — выводим дату
+    return String(date.getDate()).padStart(2, '0') + "." +
+        String((date.getMonth() + 1)).padStart(2, '0') + "." +
+        String(date.getFullYear()).slice(-2);
+
+}
+
+document.querySelectorAll(".post-date").forEach(el => {
+    const ts = el.dataset.time;
+
+    // "2025-02-07T12:10:00" — нормальный формат
+    const date = new Date(el.dataset.time); // будет уже с учётом UTC → локально
+
+
+    el.textContent = timeAgo(date);
+});
+
+document.querySelectorAll(".comment-date").forEach(el => {
+    const date = new Date(el.dataset.time);
+    el.textContent = timeAgo(date);
+});
+
+
+function likePost(id, el) {
+    fetch("like.php?id=" + id)
+        .then(r => r.text())
+        .then(t => {
+            let counter = el.querySelector(".like-count");
+            let icon = el.querySelector(".like-icon");
+
+            if (t === "LIKED") {
+                counter.textContent = parseInt(counter.textContent) + 1;
+                icon.style.opacity = "1";
+            } 
+            else if (t === "UNLIKED") {
+                counter.textContent = parseInt(counter.textContent) - 1;
+                icon.style.opacity = "0.5";
+            } 
+            else if (t === "NOT_LOGGED_IN") {
+                alert("Чтобы ставить лайки, войдите в аккаунт.");
+            }
+            if (t === "LIKED_REMOVED_DISLIKE") {
+                counter.textContent = parseInt(counter.textContent) + 1;
+                icon.style.opacity = "1";
+
+                // Сбросить дизлайк
+                let dSpan = el.parentNode.querySelector(".dislike-count");
+                let dIcon = el.parentNode.querySelector(".dislike-icon");
+                dIcon.style.opacity = "0.5";
+                dSpan.textContent = parseInt(dSpan.textContent) - 1;
+            }
+
+        });
+}   
+
+function dislikePost(id, el) {
+    fetch("dislike.php?id=" + id)
+        .then(r => r.text())
+        .then(t => {
+            let counter = el.querySelector(".dislike-count");
+            let icon = el.querySelector(".dislike-icon");
+
+            if (t === "DISLIKED") {
+                counter.textContent = parseInt(counter.textContent) + 1;
+                icon.style.opacity = "1";
+            } 
+            else if (t === "UNDISLIKED") {
+                counter.textContent = parseInt(counter.textContent) - 1;
+                icon.style.opacity = "0.5";
+            } 
+            else if (t === "NOT_LOGGED_IN") {
+                alert("Чтобы ставить дизлайки, войдите в аккаунт.");
+            }
+            if (t === "DISLIKED_REMOVED_LIKE") {
+                counter.textContent = parseInt(counter.textContent) + 1;
+                icon.style.opacity = "1";
+
+                let lSpan = el.parentNode.querySelector(".like-count");
+                let lIcon = el.parentNode.querySelector(".like-icon");
+                lIcon.style.opacity = "0.5";
+                lSpan.textContent = parseInt(lSpan.textContent) - 1;
+            }
+
+        });
+}   
+
+function addComment(e, postId) {
+    e.preventDefault();
+    const form = e.target;
+    const input = form.querySelector('input[name="comment"]');
+    const content = input.value.trim();
+    if (!content) return;
+
+    fetch('add_comment.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'post_id=' + postId + '&content=' + encodeURIComponent(content)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const list = form.parentNode.querySelector('.comment-list');
+            const div = document.createElement('div');
+            div.className = 'comment';
+            const now = new Date(); // текущее время
+            const avatarSrc = (data.avatar && data.avatar !== "NULL") ? data.avatar : "default.png";
+
+            div.innerHTML = `
+                <img src="avatars/${avatarSrc}" class="comment-avatar">
+                <div>
+                    <b>${data.username}</b>: ${data.content}
+                    <div class="comment-date" data-time="${now.toISOString()}Z" style="color:#777; font-size:12px;"></div>
+                </div>
+            `;
+
+;
+            list.appendChild(div);
+            // Обновляем число комментариев
+            const postDiv = form.closest('.post'); // сам пост
+            // Обновляем число комментариев
+            const commentCountSpan = postDiv.querySelector('.comment-count .count-number');
+            let count = parseInt(commentCountSpan.textContent);
+            commentCountSpan.textContent = count + 1;
+
+
+            input.value = '';
+            // сразу обновим текст времени
+            const dateEl = div.querySelector(".comment-date");
+            dateEl.textContent = timeAgo(now);
+        } else {
+            alert(data.error);
+        }
+    });
+
+
+    return false;
+}
+
+</script>
 
 </body>
 </html>
