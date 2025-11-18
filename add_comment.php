@@ -10,6 +10,7 @@ if (empty($_SESSION['user_id'])) {
 
 $postId = (int)$_POST['post_id'];
 $content = trim($_POST['content']);
+$parent_id = (int)($_POST['parent_id'] ?? 0);
 $userId = $_SESSION['user_id'];
 
 if ($content === '') {
@@ -17,21 +18,30 @@ if ($content === '') {
     exit;
 }
 
-// Добавляем комментарий
-$stmt = $pdo->prepare("INSERT INTO comments (post_id, user_id, content, created_at) VALUES (?, ?, ?, datetime('now'))");
-$stmt->execute([$postId, $userId, $content]);
+$stmt = $pdo->prepare("
+    INSERT INTO comments (post_id, user_id, parent_id, content)
+    VALUES (?, ?, ?, ?)
+");
+$stmt->execute([$postId, $userId, $parent_id, $content]);
 
-// Увеличиваем счетчик комментариев в посте
-$pdo->prepare("UPDATE posts SET comments = comments + 1 WHERE id = ?")->execute([$postId]);
+$commentId = $pdo->lastInsertId();
 
-// Получаем данные пользователя для возврата
-$stmt = $pdo->prepare("SELECT username, COALESCE(avatar,'default.png') AS avatar FROM users WHERE id = ?");
+$pdo->prepare("UPDATE posts SET comments = comments + 1 WHERE id = ?")
+    ->execute([$postId]);
+
+$stmt = $pdo->prepare("
+    SELECT username, COALESCE(avatar,'default.png') AS avatar 
+    FROM users WHERE id = ?
+");
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 
 echo json_encode([
     'success' => true,
+    'id' => $commentId,
+    'parent_id' => $parent_id,
     'username' => $user['username'],
     'avatar' => $user['avatar'],
-    'content' => htmlspecialchars($content)
+    'content' => htmlspecialchars($content),
+    'created_at' => date("Y-m-d H:i:s")
 ]);

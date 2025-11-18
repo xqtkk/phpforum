@@ -1,0 +1,267 @@
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+}
+.topbar {
+  background: #333;
+  color: #fff;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.topbar a {
+  color: #fff;
+  text-decoration: none;
+  margin-left: 15px;
+}
+.logo a {
+  font-size: 22px;
+  font-weight: bold;
+}
+.avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.filters {
+  background: #fff;
+  padding: 15px;
+  margin: 15px;
+  border-radius: 10px;
+}
+.posts {
+  padding: 15px;
+}
+.post {
+  background: #fff;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+}
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+}
+
+.post-info span {
+  margin-right: 15px;
+  color: #555;
+}
+
+.pagination {
+  text-align: center;
+  margin: 20px;
+}
+.page-btn {
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+.comments {
+  margin-top: 15px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+}
+
+.comment-list .comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f9f9f9;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.comment-list .comment b {
+  margin-right: 5px;
+}
+
+.comment-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.comment-input:focus {
+  border-color: #333;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+  outline: none;
+}
+
+.comment-send {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #333;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.comment-send:hover {
+  background: #555;
+}
+
+/* Слегка увеличим отступ у поста, чтобы комментарии были читаемы */
+.post {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Можно сделать аватар комментатора чуть меньше, если добавлять */
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Для мобильных: инпут и кнопка подстраиваются */
+@media (max-width: 600px) {
+  .comment-form {
+    flex-direction: column;
+  }
+  .comment-input {
+    width: 100%;
+  }
+  .comment-send {
+    width: 100%;
+  }
+}
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 14px;
+  min-width: 150px;
+  cursor: pointer;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.filter-select:focus {
+  border-color: #333;
+  outline: none;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #333;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.filter-btn:hover {
+  background: #555;
+}
+
+.load-more {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 10px 15px;
+  font-size: 15px;
+  color: #1a1a1a;
+  background: #f0f0f0;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 15px 0;
+  transition: 0.2s;
+}
+
+.load-more:hover {
+  background: #e5e5e5;
+  border-color: #b5b5b5;
+}
+
+.load-more:active {
+  background: #d9d9d9;
+}
+
+/* ====== КНОПКА "Показать ответы" ====== */
+
+.show-replies {
+  display: inline-block;
+  padding: 6px 10px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #111111;
+  background: #f0f0f0;
+  border: 1px solid #c2c2c2;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  user-select: none;
+}
+
+.show-replies:hover {
+  background: #e5e5e5;
+  border-color: #b5b5b5;
+}
+
+.show-replies:active {
+  background: #d9d9d9;
+}
+
+.create-post-btn {
+  display: inline-block;
+  font-size: 24px;
+  font-weight: bold;
+  width: 32px;
+  height: 32px;
+  text-align: center;
+  line-height: 32px;
+  border-radius: 50%;
+  text-decoration: none;
+  margin-left: 10px;
+  transition: background 0.3s;
+}
+
+.create-post-btn:hover {
+  background: #4d4c4c;
+}

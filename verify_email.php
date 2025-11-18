@@ -37,6 +37,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="ru">
+<style>
+/* Общий фон и шрифт */
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Контейнер формы */
+form, h2 {
+    width: 100%;
+    max-width: 400px;
+    margin: 10px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+/* Поля ввода */
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+input[type="text"]::placeholder {
+    color: #888;
+}
+
+/* Кнопка */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Ошибки */
+div[style*="color:red"] {
+    background-color: #330000;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    text-align: center;
+    color: #ff6b6b;
+}
+</style>
+
 <head>
 <meta charset="UTF-8">
 <title>Подтверждение Email</title>

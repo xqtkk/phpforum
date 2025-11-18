@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $login    = trim($_POST["login"] ?? "");     // username или email
     $password = trim($_POST["password"] ?? "");
-
+    $login = strtolower($login);
     if ($login === "") {
         $errors[] = "Введите логин или email.";
     }
@@ -28,6 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             WHERE username = ? OR email = ?
             LIMIT 1
         ");
+
         $stmt->execute([$login, $login]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

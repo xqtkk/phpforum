@@ -24,10 +24,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Логин
     if ($username === "") {
         $errors[] = "Введите имя пользователя.";
-    } elseif (!preg_match("/^[a-z0-9]{3,20}$/", $username)) {
+    } elseif (!preg_match("/^[A-Za-z0-9]{3,20}$/", $username)) {
         $errors[] = "Логин может содержать только буквы и цифры (3–20 символов).";
     }
-
+    $username = strtolower($username);
     // Email
     if ($email === "") {
         $errors[] = "Введите email.";
